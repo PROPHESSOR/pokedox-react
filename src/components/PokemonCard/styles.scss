@@ -1,0 +1,49 @@
+@keyframes loading {
+    0% {
+        top: -10px;
+    }
+
+    50% {
+        top: 0px;
+    }
+
+    100% {
+        top: -10px;
+    }
+}
+
+.pokecard {
+    border: 15px solid !important;
+    transition: background 0.2s ease-out;
+    // transition: box-shadow 0.2s ease-in;
+
+    &:hover {
+        img {
+            box-shadow: 5px 5px 10px black;
+        }
+    }
+}
+
+.awaiting {
+    // Hardcore rewrite bootstrap default styles
+    border-color: rgba(255, 0, 0, .3) !important;
+    background: #555 !important;
+    color: white;
+
+    h5 {
+        color: orange;
+        position: relative;
+        animation: loading 1s infinite ease-in-out;
+    }
+}
+
+.ready {
+    background: #fff !important;
+    border-color: #fff !important;
+}
+
+.badge {
+    margin-right: 5px;
+    position: relative;
+    top: -2px;
+}
