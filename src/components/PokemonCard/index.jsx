@@ -11,7 +11,11 @@ export default class PokemonCard extends Component {
     }
   };
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.fetchPokemon();
+  }
+
+  async fetchPokemon() {
     const { pokemon } = this.state;
 
     const request = await fetch(`${Config.API}/pokemon/${pokemon.name}`);
@@ -74,7 +78,11 @@ export default class PokemonCard extends Component {
 
     return pokemon.types
       .sort((a, b) => a.slot - b.slot)
-      .map(e => <span class="badge badge-secondary">{e.type.name}</span>);
+      .map((e, i) => (
+        <span key={i} class="badge badge-secondary">
+          {e.type.name}
+        </span>
+      ));
   }
 
   // Render
