@@ -59,7 +59,7 @@ export default class PokemonCard extends Component {
     if (!pokemon.id) return null;
 
     return (
-      <p className="card-text">
+      <div className="card-text">
         <ul>
           <li>Weight: {pokemon.weight} Kg</li>
           <li>
@@ -67,7 +67,7 @@ export default class PokemonCard extends Component {
           </li>
           <li>Forms: {pokemon.forms.map(e => e.name).join(", ")}</li>
         </ul>
-      </p>
+      </div>
     );
   }
 
@@ -79,15 +79,32 @@ export default class PokemonCard extends Component {
     return pokemon.types
       .sort((a, b) => a.slot - b.slot)
       .map((e, i) => (
-        <span key={i} class="badge badge-secondary">
+        <span key={i} className="badge badge-secondary">
           {e.type.name}
         </span>
       ));
   }
 
+  get show() {
+    const { pokemon } = this.state;
+    const { filter_name, filter_type } = this.props;
+
+    if (filter_name && !pokemon.name.startsWith(filter_name)) return false;
+
+    if (pokemon.id && filter_type) {
+      const types = filter_type.split(/\s*,\s*/);
+
+      if (!pokemon.types.some(x => types.includes(x.type.name))) return false;
+    }
+
+    return true;
+  }
+
   // Render
 
   render() {
+    if (!this.show) return null;
+
     return (
       <div
         className={`${

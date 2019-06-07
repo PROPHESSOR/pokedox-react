@@ -12,7 +12,8 @@ class App extends React.Component {
     pokemons: [],
     limit: 20,
     offset: 0,
-    filter: ""
+    filter_name: "",
+    filter_type: ""
   };
 
   replacePokemon(id, data) {
@@ -39,49 +40,50 @@ class App extends React.Component {
     this.setState({ pokemons: pokelist.results });
   }
 
+  // FIXME: It doesn't work
   async changeOffset(offset) {
-    this.setState({ offset });
-    await this.getPokelist();
-    this.forceUpdate();
+    this.setState({ offset }, async () => {
+      await this.getPokelist();
+    });
   }
 
+  // FIXME: It doesn't work
   async changeLimit(limit) {
-    this.setState({ limit });
-    await this.getPokelist();
-    this.forceUpdate();
-  }
-
-  // Computed properties
-
-  get filteredPokemons() {
-    const { pokemons, filter } = this.state;
-
-    if (!filter) return pokemons;
-
-    return pokemons.filter(e => e.name.startsWith(filter));
+    this.setState({ limit }, async () => {
+      await this.getPokelist();
+    });
   }
 
   // Event handlers
 
-  onFilterChange(filter) {
-    this.setState({ filter });
+  onFilterNameChange(filter_name) {
+    this.setState({ filter_name });
+  }
+
+  onFilterTypeChange(filter_type) {
+    this.setState({ filter_type });
   }
 
   // Render
 
   render() {
-    const pokemons = this.filteredPokemons.map((e, i) => (
-      <PokemonCard key={i} name={e.name || "Unknown"} />
-    ));
+    const { limit, filter_name, filter_type } = this.state;
 
-    const { limit } = this.state;
+    const pokemons = this.state.pokemons.map((e, i) => (
+      <PokemonCard
+        key={i}
+        name={e.name || "Unknown"}
+        filter_name={filter_name}
+        filter_type={filter_type}
+      />
+    ));
 
     const pages = [];
 
     for (let i = 0; i < Math.ceil(964 / limit); i++) {
       pages.push(
-        <div key={i} class="col page-item">
-          <button class="page-link" onClick={() => this.changeOffset(i)}>
+        <div key={i} className="col page-item">
+          <button className="page-link" onClick={() => this.changeOffset(i)}>
             {i + 1}
           </button>
         </div>
@@ -93,12 +95,19 @@ class App extends React.Component {
         <h1>PokedoxDemo</h1>
         <input
           type="text"
-          value={this.state.filter}
-          onChange={e => this.onFilterChange(e.target.value)}
+          placeholder="Filter by name"
+          value={this.state.filter_name}
+          onChange={e => this.onFilterNameChange(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Filter, by, types"
+          value={this.state.filter_type}
+          onChange={e => this.onFilterTypeChange(e.target.value)}
         />
         <div className="row">{pokemons}</div>
         <nav>
-          <div class="row">{pages}</div>
+          <div className="row">{pages}</div>
           <select
             value={this.state.offset}
             onChange={e => this.changeOffset(e.target.value)}
