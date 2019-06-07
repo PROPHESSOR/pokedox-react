@@ -89,10 +89,11 @@ export default class PokemonCard extends Component {
     const { pokemon } = this.state;
     const { filter_name, filter_type } = this.props;
 
-    if (filter_name && !pokemon.name.startsWith(filter_name)) return false;
+    if (filter_name && !pokemon.name.startsWith(filter_name.toLowerCase()))
+      return false;
 
     if (pokemon.id && filter_type) {
-      const types = filter_type.split(/\s*,\s*/);
+      const types = filter_type.toLowerCase().split(/\s*,\s*/);
 
       if (!pokemon.types.some(x => types.includes(x.type.name))) return false;
     }

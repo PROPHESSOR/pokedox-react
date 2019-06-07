@@ -5,8 +5,6 @@ import PokemonCard from "./components/PokemonCard";
 
 import Config from "./config";
 
-import "./styles.css";
-
 class App extends React.Component {
   state = {
     pokemons: [],
@@ -80,6 +78,7 @@ class App extends React.Component {
 
     const pages = [];
 
+    // FIXME: It can be implemented in a better way
     for (let i = 0; i < Math.ceil(964 / limit); i++) {
       pages.push(
         <div key={i} className="col page-item">
