@@ -1,124 +1,79 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 
 import Config from "../../config.json";
 
 import "./styles.scss";
 
-export default class PokemonCard extends Component {
-  state = {
-    pokemon: {
-      name: this.props.name
-    }
-  };
+const toCamelCase = str => str.charAt().toUpperCase() + str.slice(1);
 
-  componentDidMount() {
-    this.fetchPokemon();
+export default function PokemonCard(props) {
+  const { name, filter_type } = props;
+
+  const [pokemon, set_pokemon] = useState({ name });
+
+  useEffect(() => {
+    const fetchPokemon = async () => {
+      const request = await fetch(`${Config.API}/pokemon/${pokemon.name}`);
+
+      const json = await request.json();
+
+      set_pokemon(json);
+    };
+
+    fetchPokemon();
+  }, [pokemon.name]);
+
+  if (pokemon.id && filter_type) {
+    const types = filter_type.toLowerCase().split(/\s*,\s*/);
+
+    if (!pokemon.types.some(x => types.includes(x.type.name))) return null;
   }
 
-  async fetchPokemon() {
-    const { pokemon } = this.state;
+  const pokemon_avatar = !pokemon.sprites ? null : (
+    <img
+      className="card-img-top"
+      src={pokemon.sprites.front_default}
+      alt={toCamelCase(pokemon.name)}
+    />
+  );
 
-    const request = await fetch(`${Config.API}/pokemon/${pokemon.name}`);
+  const pokemon_badges = !pokemon.id
+    ? null
+    : pokemon.types
+        .sort((a, b) => a.slot - b.slot)
+        .map((e, i) => (
+          <span key={i} className="badge badge-secondary">
+            {e.type.name}
+          </span>
+        ));
 
-    const _pokemon = await request.json();
+  const pokemon_stats = !pokemon.id ? null : (
+    <div className="card-text">
+      <ul>
+        <li>Weight: {pokemon.weight} Kg</li>
+        <li>
+          Abilities: {pokemon.abilities.map(e => e.ability.name).join(", ")}
+        </li>
+        <li>Forms: {pokemon.forms.map(e => e.name).join(", ")}</li>
+      </ul>
+    </div>
+  );
 
-    this.setState({ pokemon: _pokemon });
-  }
+  return (
+    <div
+      className={`${
+        pokemon.id ? "ready" : "awaiting"
+      } col-sm-4 col-md-3 col-lg-2 card pokecard`}
+    >
+      {pokemon_avatar}
 
-  toCamelCase(str) {
-    return str.charAt().toUpperCase() + str.slice(1);
-  }
+      <div className="card-body">
+        <h5 className="card-title">
+          {toCamelCase(pokemon.name)} {pokemon_badges}
+        </h5>
 
-  // Computed properties, Yeah, Vue.js-like
-
-  get displayableName() {
-    return this.toCamelCase(this.state.pokemon.name);
-  }
-
-  get isLoadedClass() {
-    return this.state.pokemon.id ? "ready" : "awaiting";
-  }
-
-  get pokemonAvatar() {
-    const { pokemon } = this.state;
-
-    if (!pokemon.sprites) return null;
-
-    return (
-      <img
-        className="card-img-top"
-        src={pokemon.sprites.front_default}
-        alt={this.displayableName}
-      />
-    );
-  }
-
-  get pokemonStats() {
-    const { pokemon } = this.state;
-
-    if (!pokemon.id) return null;
-
-    return (
-      <div className="card-text">
-        <ul>
-          <li>Weight: {pokemon.weight} Kg</li>
-          <li>
-            Abilities: {pokemon.abilities.map(e => e.ability.name).join(", ")}
-          </li>
-          <li>Forms: {pokemon.forms.map(e => e.name).join(", ")}</li>
-        </ul>
+        {pokemon_stats}
       </div>
-    );
-  }
-
-  get pokemonBadges() {
-    const { pokemon } = this.state;
-
-    if (!pokemon.id) return null;
-
-    return pokemon.types
-      .sort((a, b) => a.slot - b.slot)
-      .map((e, i) => (
-        <span key={i} className="badge badge-secondary">
-          {e.type.name}
-        </span>
-      ));
-  }
-
-  get show() {
-    const { pokemon } = this.state;
-    const { filter_type } = this.props;
-
-    if (pokemon.id && filter_type) {
-      const types = filter_type.toLowerCase().split(/\s*,\s*/);
-
-      if (!pokemon.types.some(x => types.includes(x.type.name))) return false;
-    }
-
-    return true;
-  }
-
-  // Render
-
-  render() {
-    if (!this.show) return null;
-
-    return (
-      <div
-        className={`${
-          this.isLoadedClass
-        } col-sm-4 col-md-3 col-lg-2 card pokecard`}
-      >
-        {this.pokemonAvatar}
-
-        <div className="card-body">
-          <h5 className="card-title">
-            {this.displayableName} {this.pokemonBadges}
-          </h5>
-
-          {this.pokemonStats}
-        </div>
-      </div>
-    );
-  }
+    </div>
+  );
 }
