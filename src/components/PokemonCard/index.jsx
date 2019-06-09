@@ -87,10 +87,7 @@ export default class PokemonCard extends Component {
 
   get show() {
     const { pokemon } = this.state;
-    const { filter_name, filter_type } = this.props;
-
-    if (filter_name && !pokemon.name.startsWith(filter_name.toLowerCase()))
-      return false;
+    const { filter_type } = this.props;
 
     if (pokemon.id && filter_type) {
       const types = filter_type.toLowerCase().split(/\s*,\s*/);

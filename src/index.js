@@ -27,29 +27,19 @@ class App extends React.Component {
   }
 
   async getPokelist() {
-    const { offset, limit } = this.state;
-
-    const request = await fetch(
-      `${Config.API}/pokemon?limit=${limit}&offset=${offset * limit}`
-    );
+    const request = await fetch(`${Config.API}/pokemon?limit=999`);
 
     const pokelist = await request.json();
 
     this.setState({ pokemons: pokelist.results });
   }
 
-  // FIXME: It doesn't work
-  async changeOffset(offset) {
-    this.setState({ offset }, async () => {
-      await this.getPokelist();
-    });
+  onChangeOffset(offset) {
+    this.setState({ offset });
   }
 
-  // FIXME: It doesn't work
-  async changeLimit(limit) {
-    this.setState({ limit }, async () => {
-      await this.getPokelist();
-    });
+  onChangeLimit(limit) {
+    this.setState({ limit });
   }
 
   // Event handlers
@@ -62,32 +52,66 @@ class App extends React.Component {
     this.setState({ filter_type });
   }
 
+  // Computed
+
+  get filteredPokemons() {
+    const { filter_name, pokemons } = this.state;
+
+    if (filter_name)
+      return pokemons.filter(pokemon =>
+        pokemon.name.startsWith(filter_name.toLowerCase())
+      );
+
+    return pokemons;
+  }
+
+  get pokemonsSlice() {
+    const { offset, limit } = this.state;
+
+    const realOffset = offset * limit;
+
+    return this.filteredPokemons.slice(realOffset, realOffset + limit);
+  }
+
   // Render
 
   render() {
-    const { limit, filter_name, filter_type } = this.state;
+    const { limit, filter_type } = this.state;
 
-    const pokemons = this.state.pokemons.map((e, i) => (
+    const pokemons = this.pokemonsSlice.map((e, i) => (
       <PokemonCard
-        key={i}
+        key={e.name}
         name={e.name || "Unknown"}
-        filter_name={filter_name}
         filter_type={filter_type}
       />
     ));
 
     const pages = [];
 
-    // FIXME: It can be implemented in a better way
-    for (let i = 0; i < Math.ceil(964 / limit); i++) {
+    const num_pages = Math.ceil(this.filteredPokemons.length / limit);
+    for (let i = 0; i < num_pages; i++) {
       pages.push(
         <div key={i} className="col page-item">
-          <button className="page-link" onClick={() => this.changeOffset(i)}>
+          <button className="page-link" onClick={() => this.onChangeOffset(i)}>
             {i + 1}
           </button>
         </div>
       );
     }
+
+    const pagination = (
+      <nav>
+        <div className="row">{pages}</div>
+        <select
+          value={this.state.limit}
+          onChange={e => this.onChangeLimit(Number(e.target.value))}
+        >
+          <option>10</option>
+          <option>20</option>
+          <option>50</option>
+        </select>
+      </nav>
+    );
 
     return (
       <div className="container-fluid">
@@ -104,18 +128,9 @@ class App extends React.Component {
           value={this.state.filter_type}
           onChange={e => this.onFilterTypeChange(e.target.value)}
         />
+        {/* {pagination} */}
         <div className="row">{pokemons}</div>
-        <nav>
-          <div className="row">{pages}</div>
-          <select
-            value={this.state.offset}
-            onChange={e => this.changeOffset(e.target.value)}
-          >
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-          </select>
-        </nav>
+        {pagination}
       </div>
     );
   }
