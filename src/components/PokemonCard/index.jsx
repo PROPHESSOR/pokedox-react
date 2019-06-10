@@ -7,7 +7,7 @@ import "./styles.scss";
 const toCamelCase = str => str.charAt().toUpperCase() + str.slice(1);
 
 export default function PokemonCard(props) {
-  const { name, filter_type } = props;
+  const { name } = props;
 
   const [pokemon, set_pokemon] = useState({ name });
 
@@ -22,12 +22,6 @@ export default function PokemonCard(props) {
 
     fetchPokemon();
   }, [pokemon.name]);
-
-  if (pokemon.id && filter_type) {
-    const types = filter_type.toLowerCase().split(/\s*,\s*/);
-
-    if (!pokemon.types.some(x => types.includes(x.type.name))) return null;
-  }
 
   const pokemon_avatar = !pokemon.sprites ? null : (
     <img
@@ -50,11 +44,16 @@ export default function PokemonCard(props) {
   const pokemon_stats = !pokemon.id ? null : (
     <div className="card-text">
       <ul>
-        <li>Weight: {pokemon.weight} Kg</li>
         <li>
-          Abilities: {pokemon.abilities.map(e => e.ability.name).join(", ")}
+          <b>Weight:</b> {pokemon.weight} Kg
         </li>
-        <li>Forms: {pokemon.forms.map(e => e.name).join(", ")}</li>
+        <li>
+          <b>Abilities:</b>{" "}
+          {pokemon.abilities.map(e => e.ability.name).join(", ")}
+        </li>
+        <li>
+          <b>Forms:</b> {pokemon.forms.map(e => e.name).join(", ")}
+        </li>
       </ul>
     </div>
   );

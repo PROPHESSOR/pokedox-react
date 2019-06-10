@@ -13,21 +13,22 @@
 }
 
 .pokecard {
-    border: 15px solid !important;
-    transition: background 0.2s ease-out;
-    // transition: box-shadow 0.2s ease-in;
+    border: 1px solid #ccc !important;
+    transition: background 0.5s ease-out;
+    margin: 0 auto;
 
     &:hover {
         img {
-            box-shadow: 5px 5px 10px black;
+            box-shadow: 5px 5px 10px #aaa;
+            border-radius: 25px;
         }
     }
 }
 
 .awaiting {
     // Hardcore rewrite bootstrap default styles
-    border-color: rgba(255, 0, 0, .3) !important;
-    background: #555 !important;
+    border: 15px solid rgba(128, 128, 128, .3) !important;
+    background: #ccc !important;
     color: white;
 
     h5 {
@@ -39,11 +40,18 @@
 
 .ready {
     background: #fff !important;
-    border-color: #fff !important;
 }
 
 .badge {
     margin-right: 5px;
     position: relative;
     top: -2px;
+}
+
+ul {
+    padding: 0;
+}
+
+li {
+    list-style: none;
 }
