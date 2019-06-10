@@ -139,6 +139,7 @@ function App() {
           <input
             type="checkbox"
             value={e}
+            checked={filter_type.includes(e)}
             onChange={() => toggleFilterType(e)}
           />
           {e}
