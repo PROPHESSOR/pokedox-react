@@ -1,21 +1,55 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
+import { autorun } from "mobx";
+import { observer, useObservable } from "mobx-react-lite";
 
 import PokemonCard from "./components/PokemonCard";
+
+// import store from "./store";
 
 import Config from "./config";
 import "./styles.scss";
 
-function App() {
-  const [filter_name, set_filter_name] = useState("");
-  const [filter_type, set_filter_type] = useState([]);
+const App = observer(() => {
+  const store = useObservable({
+    pokelist: [],
+    filter_name: "",
+    filter_type: new Set(),
+
+    setPoketlist(array) {
+      store.pokelist = array;
+    },
+
+    setFilterName(string) {
+      store.filter_name = string;
+    },
+
+    toggleFilterType(type) {
+      const { filter_type } = store;
+
+      if (filter_type.has(type)) filter_type.delete(type);
+      else filter_type.add(type);
+    },
+
+    get filtered_pokelist() {
+      const { pokelist, filter_name } = store;
+
+      return filter_name
+        ? pokelist.filter(pokemon =>
+            pokemon.name.startsWith(filter_name.toLowerCase())
+          )
+        : pokelist;
+    }
+  });
+
+  const { filtered_pokelist, filter_name, filter_type } = store;
   const [limit, set_limit] = useState(20);
   const [offset, set_offset] = useState(0);
-  const [pokelist, set_pokelist] = useState([]);
+
   const [types, set_types] = useState([]);
   const [show_filter, set_show_filter] = useState(false);
 
-  useEffect(() => {
+  const refetch = () => {
     const fetchTypes = async () => {
       const request = await fetch(`${Config.API}/type`);
 
@@ -29,7 +63,7 @@ function App() {
 
       const json = await request.json();
 
-      set_pokelist(json.results);
+      store.setPoketlist(json.results);
     };
 
     const fetchFilteredPoketlist = async () => {
@@ -45,36 +79,24 @@ function App() {
         list = new Set([...list, ...tmp]);
       }
 
-      set_pokelist(Array.from(list));
+      store.setPoketlist(Array.from(list));
     };
 
     // First fetch types
     if (!types.length) fetchTypes();
 
     // Fetch all pokelist or the filtered one
-    if (!filter_type.length) fetchPokelist();
+    if (!filter_type.size) fetchPokelist();
     else fetchFilteredPoketlist();
-  }, [types, filter_type]);
-
-  // Funcitons
-
-  const toggleFilterType = type => {
-    if (filter_type.includes(type)) {
-      set_filter_type(filter_type.filter(x => x !== type));
-    } else {
-      set_filter_type([...filter_type, type]);
-    }
   };
+
+  useEffect(refetch, [types, filter_type, store]);
+
+  useEffect(() => autorun(refetch), []); // eslint-disable-line
 
   // Components
 
-  const filtered_pokemons = filter_name
-    ? pokelist.filter(pokemon =>
-        pokemon.name.startsWith(filter_name.toLowerCase())
-      )
-    : pokelist;
-
-  const pokemons = filtered_pokemons
+  const pokemons = filtered_pokelist
     .slice(offset * limit, offset * limit + limit)
     .map((pokemon, i) => (
       <PokemonCard key={pokemon.name} name={pokemon.name || "Unknown"} />
@@ -100,7 +122,7 @@ function App() {
       );
     };
 
-    const num_pages = Math.ceil(filtered_pokemons.length / limit);
+    const num_pages = Math.ceil(filtered_pokelist.length / limit);
 
     // First page
     pages.push(makePaginationItem(0, offset === 0, "First"));
@@ -139,8 +161,8 @@ function App() {
           <input
             type="checkbox"
             value={e}
-            checked={filter_type.includes(e)}
-            onChange={() => toggleFilterType(e)}
+            checked={filter_type.has(e)}
+            onChange={() => store.toggleFilterType(e)}
           />
           {e}
         </label>
@@ -155,10 +177,10 @@ function App() {
           type="text"
           placeholder="Filter by name"
           value={filter_name}
-          onChange={e => set_filter_name(e.target.value)}
+          onChange={e => store.setFilterName(e.target.value)}
         />
         <button
-          style={{ fontWeight: filter_type.length ? "bolder" : "normal" }}
+          style={{ fontWeight: filter_type.size ? "bolder" : "normal" }}
           className="col-2"
           onClick={() => set_show_filter(!show_filter)}
         >
@@ -170,7 +192,7 @@ function App() {
       {pagination}
     </div>
   );
-}
+});
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
